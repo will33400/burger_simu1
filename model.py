@@ -39,7 +39,7 @@ class Model(object):
         )
         return s
 
-    def ik(self, linear_speed, rotational_speed): #reverse kinematic
+    def ik(self, linear_speed=0.0, rotational_speed=0.0): #reverse kinematic
         """Given the linear speed and the rotational speed, 
         returns the speed of the wheels in a differential wheeled robot
         
@@ -51,12 +51,12 @@ class Model(object):
             float -- Speed of motor1 (m/s), speech of motor2 (m/s)
         """
         # TODO
-        m1_speed = linear_speed + L / 2 * rotational_speed
-        m2_speed = linear_speed - L / 2 * rotational_speed
+        m1_speed = linear_speed + self.r * rotational_speed
+        m2_speed = linear_speed - self.r * rotational_speed
 
         return m1_speed, m2_speed
 
-    def dk(self, m1_speed=None, m2_speed=None): #direct kinematic
+    def dk(self, m1_speed=0.0, m2_speed=0.0): #direct kinematic
         """Given the speed of each of the 2 motors (m/s), 
         returns the linear speed (m/s) and rotational speed (rad/s) of a differential wheeled robot
         
@@ -68,9 +68,11 @@ class Model(object):
             float -- linear speed (m/s), rotational speed (rad/s)
         """
         # TODO
+        
         linear_speed = (m1_speed + m2_speed) / 2
-        rotation_speed = (m1_speed - m2_speed) * 2 / L
+        rotation_speed = (m1_speed - m2_speed) * 2 / self.l
         return linear_speed, rotation_speed
+
 
     def update(self, dt):
         """Given the current state of the robot (speeds of the wheels) and a time step (dt), 
@@ -81,12 +83,17 @@ class Model(object):
             dt {float} -- Travel time in seconds
         """
         # Going from wheel speeds to robot speed
-        linear_speed, rotation_speed = self.dk(SPEED_P, SPEED_P)
+        linear_speed, rotation_speed = self.dk(SPEED_P, TURN_P)
 
         # TODO
 
+        angle = rotation_speed * dt / 10
+        length = linear_speed * dt / 10
+
         # Updating the robot position
-        self.x = self.x + 0  # TODO
-        self.y = self.y + 0  # TODO
-        self.theta = self.theta + 0  # TODO
+        self.x = self.x + (length * math.cos(angle)) + (length * math.sin(angle))  # TODO
+        self.y = self.y - (length * math.sin(angle)) + (length * math.cos(angle))  # TODO
+        self.theta = self.theta + angle  # TODO
+
+        #print(str(self.x), str(self.y), str(self.theta))
 
