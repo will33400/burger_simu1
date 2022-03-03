@@ -51,10 +51,10 @@ class Model(object):
             float -- Speed of motor1 (m/s), speech of motor2 (m/s)
         """
         # TODO
-        self.m1.speed = linear_speed - self.r * rotational_speed
-        self.m2.speed = linear_speed + self.r * rotational_speed
+        m1_speed = linear_speed + (self.r * rotational_speed)
+        m2_speed = linear_speed - (self.r * rotational_speed)
 
-        return self.m1.speed, self.m2.speed
+        return m1_speed, m2_speed
 
     def dk(self, m1_speed=0.0, m2_speed=0.0): #direct kinematic
         """Given the speed of each of the 2 motors (m/s), 
@@ -69,8 +69,8 @@ class Model(object):
         """
         # TODO
         
-        linear_speed = (self.m1.speed - self.m2.speed) / 2
-        rotation_speed = (self.m1.speed + self.m2.speed) / self.r
+        linear_speed = (self.m1.speed + self.m2.speed) / 2
+        rotation_speed = (self.m1.speed - self.m2.speed) / self.l
         return linear_speed, rotation_speed
 
 
@@ -87,20 +87,22 @@ class Model(object):
 
         # TODO
 
-        angle = rotation_speed * dt / 100
-        length = linear_speed * dt / 100
+        angle = rotation_speed * dt
+        length = linear_speed * dt
 
-        cp = 0.0
+        dxr = length
+        dyr = 0.0
+        
+        if(angle != 0):
+            dxr = (length / angle) * math.sin(angle)
+            dyr = (length / angle) *(1 - math.cos(angle))
 
-        if(length != 0 and angle != 0): 
-            cp =  angle / length # normally length / angle but doesn't work
-        dxr = cp * math.sin(angle)
-        dyr = cp *(1 - math.cos(angle))
+        print(str(dxr), str(dyr), str(angle))
 
         # Updating the robot position
-        self.x += (dxr * math.cos(angle)) - (dyr * math.sin(angle))  # TODO
-        self.y += (dxr * math.sin(angle)) + (dyr * math.cos(angle))  # TODO
+        self.x += (dxr * math.cos(self.theta)) - (dyr * math.sin(self.theta))  # TODO
+        self.y += (dxr * math.sin(self.theta)) + (dyr * math.cos(self.theta))  # TODO
         self.theta += angle  # TODO
 
-        #print(str(self.x), str(self.y), str(self.theta))
+        print(str(self.x), str(self.y), str(self.theta))
 
