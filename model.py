@@ -51,10 +51,10 @@ class Model(object):
             float -- Speed of motor1 (m/s), speech of motor2 (m/s)
         """
         # TODO
-        m1_speed = linear_speed + self.r * rotational_speed
-        m2_speed = linear_speed - self.r * rotational_speed
+        self.m1.speed = linear_speed - self.r * rotational_speed
+        self.m2.speed = linear_speed + self.r * rotational_speed
 
-        return m1_speed, m2_speed
+        return self.m1.speed, self.m2.speed
 
     def dk(self, m1_speed=0.0, m2_speed=0.0): #direct kinematic
         """Given the speed of each of the 2 motors (m/s), 
@@ -69,8 +69,8 @@ class Model(object):
         """
         # TODO
         
-        linear_speed = (m1_speed + m2_speed) / 2
-        rotation_speed = (m1_speed - m2_speed) * 2 / self.l
+        linear_speed = (self.m1.speed - self.m2.speed) / 2
+        rotation_speed = (self.m1.speed + self.m2.speed) / self.r
         return linear_speed, rotation_speed
 
 
@@ -83,17 +83,24 @@ class Model(object):
             dt {float} -- Travel time in seconds
         """
         # Going from wheel speeds to robot speed
-        linear_speed, rotation_speed = self.dk(SPEED_P, TURN_P)
+        linear_speed, rotation_speed = self.dk()
 
         # TODO
 
-        angle = rotation_speed * dt / 10
-        length = linear_speed * dt / 10
+        angle = rotation_speed * dt / 100
+        length = linear_speed * dt / 100
+
+        cp = 0.0
+
+        if(length != 0 and angle != 0): 
+            cp =  angle / length # normally length / angle but doesn't work
+        dxr = cp * math.sin(angle)
+        dyr = cp *(1 - math.cos(angle))
 
         # Updating the robot position
-        self.x = self.x + (length * math.cos(angle)) + (length * math.sin(angle))  # TODO
-        self.y = self.y - (length * math.sin(angle)) + (length * math.cos(angle))  # TODO
-        self.theta = self.theta + angle  # TODO
+        self.x += (dxr * math.cos(angle)) - (dyr * math.sin(angle))  # TODO
+        self.y += (dxr * math.sin(angle)) + (dyr * math.cos(angle))  # TODO
+        self.theta += angle  # TODO
 
         #print(str(self.x), str(self.y), str(self.theta))
 
